@@ -15,17 +15,29 @@ LSBSteganography::~LSBSteganography(void)
 {
 }
 
+/**
+ * Reads in characters from text, reads in an image from input, and
+ * writes an image with steganographically embedded text into output.
+ *
+ * The disadvantage of this function is that for every byte of text, it uses
+ * ceil(8/numPlanes) bytes, i.e., it wastes ceil(8/numPlanes)*numPlanes - 8 bits
+ */
 void LSBSteganography::stegify(char input[], char output[], char text[], int numPlanes){
+
+	// File pointer to read from image
 	FILE *inIm;
 	if ( (inIm= fopen(input,"rb")) == NULL ) {
 		cout<<"ouch, inim\n";
 		return;
 	}
+
+	// File pointer to write to new image
 	FILE *outIm;
 	if ( (outIm = fopen(output,"wb")) == NULL ) {
 		cout<<"ouch, outim\n";
 		return;
 	}
+
 	unsigned char buf[8];
 	size_t size;
 
@@ -38,46 +50,44 @@ void LSBSteganography::stegify(char input[], char output[], char text[], int num
 		cout<<"ouch, text\n";
 		return;
 	}
+
 	char temp;
 	unsigned char ch;
+
+	// read as many bytes of image required to store 1 byte of text into buffer
 	while((size=fread(buf,1,(int)(ceil((float)(8.0/numPlanes))),inIm))>0) {
-		if(total>=51 && size==(int)(ceil((float)(8.0/numPlanes))) && !isDone)	
-			//for (int i = 0; i<size;i++) 
+
+		// start "steganographic encoding" only if we are neither in the image header nor
+		// the last few bytes of the image, and if all the text to be hidden has not yet been
+		// hidden
+		if(total>BMP_HEADER_SIZE && size==(int)(ceil((float)(8.0/numPlanes))) && !isDone)
 		{
-			//buf[0] = (buf[0] & 240);
-			//buf[1] = buf[1] & 240;
+			// make lower numPlanes number of bits 0
 			for(int j=0; j<(int)(ceil((float)(8.0/numPlanes))); j++)
 				buf[j] &= 255 << numPlanes;
-			//fin>>ch;
-			//ch=getc(f);
-			if ((temp=getc(f))==EOF){//(fin.eof()) {
+
+			if ((temp=getc(f))==EOF){
+				// write in a byte with value 0 to indicate end of text
 				ch = 0;
 				isDone = 1;
 			}
 			else
 				ch = (unsigned char)temp;
-			//if (!fin.eof()) {
-				//cout<<ch<<" "<<(int)ch<<"  "<<(int)(( ch & 240 )/16)<<" "<<(int)( ch & 15 )<<"\n";
-				//buf[0] += ( ch & 240 )/16;
-				//buf[1] += ( ch & 15 );
-			//cout<<'\n'<<ch<<" "<<(int)ch<<" ";
-				for (int j=0; j<(int)(ceil((float)(8.0/numPlanes))); j++) {//cout<<(int)buf[j]<<" ";
-					if (8-((j+1)*numPlanes) > 0)
-						buf[j] |= ((ch >> (8-((j+1)*numPlanes))) & ~(255 << numPlanes));
-					else if (8-((j+1)*numPlanes) < 0)
-						buf[j] |= ((ch << (((j+1)*numPlanes)-8)) & ~(255 << numPlanes));
-					else
-						buf[j] |= (ch  & ~(255 << numPlanes));
-					//cout<<(int)buf[j]<<" ";
-				}
-					
-			//}
-			//else if (!isDone) {
-			//	ch = 0;
-		//		buf[0] += ( ch & 240 )/16;
-	//			buf[1] += ( ch & 15 );
-		//		isDone = 1;
-		//	}
+
+			//
+			for (int j = 0; j < (int) (ceil((float) (8.0 / numPlanes))); j++) {
+				// if there are more than numPlanes chars left to be written
+				if (8 - ((j + 1) * numPlanes) > 0)
+					buf[j] |= ((ch >> (8 - ((j + 1) * numPlanes)))
+							& ~(255 << numPlanes));
+				// if there are less than numPlanes chars left to be written
+				else if (8 - ((j + 1) * numPlanes) < 0)
+					buf[j] |= ((ch << (((j + 1) * numPlanes) - 8))
+							& ~(255 << numPlanes));
+				// if there are exactly numPlanes chars left to be written
+				else
+					buf[j] |= (ch & ~(255 << numPlanes));
+			}
 		}
 
 		total+=size;
@@ -164,7 +174,7 @@ void LSBSteganography::destegify(char input[], int numPlanes){
 
 	unsigned char ch;
 	while((size=fread(buf,1,(int)(ceil((float)(8.0/numPlanes))),inIm))>0 && !isDone) {
-		if(total>=51 && size==(int)(ceil((float)(8.0/numPlanes))))
+		if(total>BMP_HEADER_SIZE && size==(int)(ceil((float)(8.0/numPlanes))))
 		{
 			//buf[0] = (buf[0] & 15);
 			//buf[1] = (buf[1] & 15);

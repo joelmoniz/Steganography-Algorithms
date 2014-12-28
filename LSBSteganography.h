@@ -2,6 +2,7 @@
 
 class LSBSteganography
 {
+	const int BMP_HEADER_SIZE = 54;
 public:
 	LSBSteganography(void);
 	~LSBSteganography(void);
