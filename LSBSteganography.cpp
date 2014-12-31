@@ -98,6 +98,126 @@ void LSBSteganography::stegify(char input[], char output[], char text[], int num
 	fclose(outIm);
 }
 
+void LSBSteganography::improvedStegify(char input[], char output[], char text[], int numPlanes){
+
+	FILE *inIm;
+	if ( (inIm= fopen(input,"rb")) == NULL ) {
+		cout<<"ouch, inim\n";
+		return;
+	}
+//	else
+//		cout<<inIm<<"\n";
+
+	FILE *outIm;
+	if ( (outIm = fopen(output,"wb")) == NULL ) {
+		cout<<"ouch, outim\n";
+		return;
+	}
+	
+	size_t size;
+
+	unsigned char buf[2];
+
+	int total=0;
+
+	ifstream fin(text);
+	FILE *f;
+	if ((f=fopen(text,"r"))==NULL) {
+		cout<<"ouch, text\n";
+		return;
+	}
+
+	char temp;
+	unsigned char ch;
+
+	int picCharsLeft = 0;//numPlanes;
+	int textCharsLeft = 8;
+
+	while(total<=BMP_HEADER_SIZE && (size=fread(buf,1,1,inIm))>0) {
+		total++;
+		fwrite(buf,1,size,outIm);
+	}
+	
+	bool isDone = false;
+
+	while (!isDone) {
+		if ((temp = getc(f)) != EOF)
+			ch = (unsigned char) temp;
+		else {
+			isDone = true;
+			ch = 0;
+		}
+		
+		textCharsLeft = 8;
+		
+		while (textCharsLeft > 0) {
+			if (picCharsLeft != 0) {
+				(*buf) |=  (unsigned char)(ch >> (8-picCharsLeft));
+				textCharsLeft = 8 - picCharsLeft;
+				picCharsLeft = 0;
+				fwrite(buf,1,1,outIm);
+			}
+			else if (numPlanes > textCharsLeft) {
+				if (fread(buf, 1, 1, inIm) <= 0) {
+					isDone = true;
+					break;
+				}
+				picCharsLeft = numPlanes - textCharsLeft;
+				(*buf) = ((unsigned char)(((*buf)>>numPlanes)<<numPlanes) | (unsigned char)((unsigned char)(ch << (8-textCharsLeft))>>(8-picCharsLeft)));
+				textCharsLeft = 0;
+				if (isDone)
+					fwrite(buf,1,1,outIm);
+			}
+			else {
+				if (fread(buf, 1, 1, inIm) <= 0) {
+					isDone = true;
+					break;
+				}
+				(*buf) = ((unsigned char)(((*buf)>>numPlanes)<<numPlanes) | (unsigned char)((unsigned char)(ch << (8 - textCharsLeft)) >> (8 - numPlanes)));
+				textCharsLeft -= numPlanes;
+				fwrite(buf,1,1,outIm);
+			}
+		}
+	}
+	
+	while (fread(buf,1,1,inIm)>0) {
+		fwrite(buf,1,1,outIm);
+	}
+
+//	while(fread(buf,1,1,inIm)>0) {
+//		if(total>BMP_HEADER_SIZE && !isDone)
+//		{
+//			*buf &= 255 << numPlanes;
+//			if ((temp = getc(f)) == EOF) {
+//				ch = 0;
+//				isDone = 1;
+//			}
+//			else
+//				ch = (unsigned char) temp;
+//			
+//			textCharsLeft = picCharsLeft = 8;
+//			
+//			
+////			for (int j = 0; j < (int) (ceil((float) (8.0 / numPlanes))); j++) {
+////				if (8 - ((j + 1) * numPlanes) > 0)
+////					buf[j] |= ((ch >> (8 - ((j + 1) * numPlanes)))
+////							& ~(255 << numPlanes));
+////				else if (8 - ((j + 1) * numPlanes) < 0)
+////					buf[j] |= ((ch << (((j + 1) * numPlanes) - 8))
+////							& ~(255 << numPlanes));
+////				else
+////					buf[j] |= (ch & ~(255 << numPlanes));
+////			}
+//			
+//		}
+//		total++;
+//		fwrite(buf,1,1,outIm);
+//	}
+	fin.close();
+	fclose(inIm);
+	fclose(outIm);
+}
+
 void LSBSteganography::copyImage(char input[], char output[]) {
 	FILE *inIm;
 	if ( (inIm= fopen(input,"rb")) == NULL ) {
