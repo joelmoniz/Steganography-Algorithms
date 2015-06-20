@@ -152,7 +152,7 @@ void LSBSteganography::improvedStegify(char input[], char output[], char text[],
 		
 		while (textCharsLeft > 0) {
 			if (picCharsLeft != 0) {
-				(*buf) |=  (unsigned char)(ch >> (8-picCharsLeft));
+				(*buf) |=  225 & (unsigned char)(ch >> (8-picCharsLeft));
 				textCharsLeft = 8 - picCharsLeft;
 				picCharsLeft = 0;
 				fwrite(buf,1,1,outIm);
@@ -163,7 +163,7 @@ void LSBSteganography::improvedStegify(char input[], char output[], char text[],
 					break;
 				}
 				picCharsLeft = numPlanes - textCharsLeft;
-				(*buf) = ((unsigned char)(((*buf)>>numPlanes)<<numPlanes) | (unsigned char)((unsigned char)(ch << (8-textCharsLeft))>>(8-picCharsLeft)));
+				(*buf) = ((255&(unsigned char)(((*buf)>>numPlanes)<<numPlanes))   | (255&(unsigned char)((unsigned char)(ch << (8-textCharsLeft))>>(8-picCharsLeft))));
 				textCharsLeft = 0;
 				if (isDone)
 					fwrite(buf,1,1,outIm);
@@ -173,7 +173,7 @@ void LSBSteganography::improvedStegify(char input[], char output[], char text[],
 					isDone = true;
 					break;
 				}
-				(*buf) = ((unsigned char)(((*buf)>>numPlanes)<<numPlanes) | (unsigned char)((unsigned char)(ch << (8 - textCharsLeft)) >> (8 - numPlanes)));
+				(*buf) = ((255&(unsigned char)(((*buf)>>numPlanes)<<numPlanes))   | (255&(unsigned char)((unsigned char)(ch << (8 - textCharsLeft)) >> (8 - numPlanes))));
 				textCharsLeft -= numPlanes;
 				fwrite(buf,1,1,outIm);
 			}

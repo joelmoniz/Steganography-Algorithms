@@ -22,7 +22,7 @@ int main() {
 
 	cout<<"Initializing...\n";
 	LSBSteganography *lsbSteg = new LSBSteganography;
-//	lsbSteg->stegify("Koala.bmp", "Koala5.bmp", "organizations.csv", 5);
+	lsbSteg->stegify("Koala.bmp", "Koala5.bmp", "organizations.csv", 5);
 	lsbSteg->improvedStegify("Koala.bmp", "Koala5ii.bmp", "organizations.csv", 5);
 	cout << "Stegification done...\n";
 
