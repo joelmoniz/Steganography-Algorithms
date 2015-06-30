@@ -15,6 +15,20 @@ LSBSteganography::~LSBSteganography(void)
 {
 }
 
+
+void LSBSteganography::print_int_in_binary(unsigned char a) {
+	int x = 0;
+	for (int i=0;i<sizeof(unsigned char)*8; i++) {
+		x <<= 1;
+		x |= a & 1;
+		a >>= 1;
+	}
+	for (int i=0;i<sizeof(unsigned char)*8; i++) {
+		cout<<(x&1);
+		x >>= 1;
+	}
+}
+
 /**
  * Reads in characters from text, reads in an image from input, and
  * writes an image with steganographically embedded text into output.

@@ -11,4 +11,5 @@ public:
 	void destegify(char[], int);
 	void copyImage(char[], char[]);
 	void sliceLowerPlane(char[], char[]);
+  void print_int_in_binary(unsigned char a);
 };
