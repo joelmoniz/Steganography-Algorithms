@@ -145,57 +145,80 @@ void LSBSteganography::improvedStegify(char input[], char output[], char text[],
 	unsigned char ch;
 
 	int picCharsLeft = 0;//numPlanes;
-	int textCharsLeft = 8;
+	int textCharsLeft = 0;
 
 	while(total<=BMP_HEADER_SIZE && (size=fread(buf,1,1,inIm))>0) {
 		total++;
 		fwrite(buf,1,size,outIm);
+		// cout<<"steg inout: ";print_int_in_binary(*buf);cout<<"\n";
 	}
 	
-	bool isDone = false;
+	bool isDone = false, endWritten = false;
+
+	cout<<"Oof ";print_int_in_binary(7);cout<<"\n";
 
 	while (!isDone) {
-		if ((temp = getc(f)) != EOF)
-			ch = (unsigned char) temp;
-		else {
-			isDone = true;
-			ch = 0;
+		if (!isDone) {
+			if (textCharsLeft == 0) {
+				if ((temp = getc(f)) == EOF) {
+					isDone = true;
+					ch = 0;
+				}
+				else {
+					ch = (unsigned char) temp;
+					// cout<<"plain in: ";print_int_in_binary(ch);cout<<"\n";
+				}
+				textCharsLeft = 8;
+			}
+
+			if (picCharsLeft == 0) {
+				if (fread(buf, 1, 1, inIm) <= 0) {
+					isDone = true;
+					break;
+				}
+				else {
+					*buf = (*buf >> numPlanes) << numPlanes;
+					picCharsLeft = numPlanes;
+					// cout<<"Steg in: ";print_int_in_binary(*buf);cout<<"\n";
+				}
+			}
 		}
-		
-		textCharsLeft = 8;
-		
-		while (textCharsLeft > 0) {
+		else if (textCharsLeft == 0) {
 			if (picCharsLeft != 0) {
-				(*buf) |=  225 & (unsigned char)(ch >> (8-picCharsLeft));
-				textCharsLeft = 8 - picCharsLeft;
-				picCharsLeft = 0;
 				fwrite(buf,1,1,outIm);
+				// cout<<"Last steg out: ";print_int_in_binary(*buf);cout<<"\n";
 			}
-			else if (numPlanes > textCharsLeft) {
-				if (fread(buf, 1, 1, inIm) <= 0) {
-					isDone = true;
-					break;
-				}
-				picCharsLeft = numPlanes - textCharsLeft;
-				(*buf) = ((255&(unsigned char)(((*buf)>>numPlanes)<<numPlanes))   | (255&(unsigned char)((unsigned char)(ch << (8-textCharsLeft))>>(8-picCharsLeft))));
-				textCharsLeft = 0;
-				if (isDone)
-					fwrite(buf,1,1,outIm);
-			}
-			else {
-				if (fread(buf, 1, 1, inIm) <= 0) {
-					isDone = true;
-					break;
-				}
-				(*buf) = ((255&(unsigned char)(((*buf)>>numPlanes)<<numPlanes))   | (255&(unsigned char)((unsigned char)(ch << (8 - textCharsLeft)) >> (8 - numPlanes))));
-				textCharsLeft -= numPlanes;
-				fwrite(buf,1,1,outIm);
-			}
+			break;
+		}
+		else { // Shouldn't happen
+			cout<<"Clearly I'm not all that good at verifying program correctness\n";
+		}
+
+		if (textCharsLeft < picCharsLeft) {
+			*buf |= ch << (picCharsLeft - textCharsLeft);
+			picCharsLeft -= textCharsLeft;
+			textCharsLeft = 0;
+		}
+		else if (picCharsLeft < textCharsLeft) {
+			// cout<<"Shift op ";print_int_in_binary(ch);cout<< "<<"<<(8 - textCharsLeft)<<">>"<<(8-picCharsLeft)<<"=";print_int_in_binary((ch << (8 - textCharsLeft)) >> (8 - picCharsLeft )); cout << "\n";
+			*buf |= (ch << (8 - textCharsLeft)) >> (8 - picCharsLeft );
+			textCharsLeft -= picCharsLeft;
+			picCharsLeft = 0;
+			ch = (unsigned char)(ch << (8-textCharsLeft)) >> (8-textCharsLeft);
+			fwrite(buf,1,1,outIm);
+			// cout<<"Steg out: ";print_int_in_binary(*buf);cout<<"\n";
+		}
+		else {
+			*buf |= ch;
+			fwrite(buf,1,1,outIm);
+			// cout<<"Steg out: ";print_int_in_binary(*buf);cout<<"\n";
+			picCharsLeft = textCharsLeft = 0;
 		}
 	}
 	
 	while (fread(buf,1,1,inIm)>0) {
 		fwrite(buf,1,1,outIm);
+		// cout<<"Nosteg inout: ";print_int_in_binary(*buf);cout<<"\n";
 	}
 
 //	while(fread(buf,1,1,inIm)>0) {
