@@ -22,14 +22,17 @@ int main() {
 
 	cout<<"Initializing...\n";
 	LSBSteganography *lsbSteg = new LSBSteganography;
-	lsbSteg->stegify("Koala.bmp", "Koala5.bmp", "organizations.csv", 5);
-	lsbSteg->improvedStegify("Koala.bmp", "Koala5ii.bmp", "organizations.csv", 5);
+	// lsbSteg->stegify("Koala.bmp", "Koala5.bmp", "organizations.csv", 3);
+	// lsbSteg->improvedStegify("test3.txt", "testx.txt", "test2.txt", 3);
+	lsbSteg->improvedStegify("Koala.bmp", "Koala2.bmp", "organizations.csv", 2);
+	// lsbSteg->improvedStegify("Koala.bmp", "Koala2.bmp", "test_im.txt", 2);
 	cout << "Stegification done...\n";
 
 	test();
 
-//cout<<"DeStegifying...\n";
-//lsbSteg->destegify("Koala5.bmp",5);
+cout<<"DeStegifying...\n";
+// lsbSteg->improvedDestegify("testx.txt",3);
+lsbSteg->improvedDestegify("Koala2.bmp",2);
 
 //	HuffmanTree *ht = new HuffmanTree;
 	//ht->minHeapify();

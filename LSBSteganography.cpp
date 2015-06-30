@@ -221,38 +221,72 @@ void LSBSteganography::improvedStegify(char input[], char output[], char text[],
 		// cout<<"Nosteg inout: ";print_int_in_binary(*buf);cout<<"\n";
 	}
 
-//	while(fread(buf,1,1,inIm)>0) {
-//		if(total>BMP_HEADER_SIZE && !isDone)
-//		{
-//			*buf &= 255 << numPlanes;
-//			if ((temp = getc(f)) == EOF) {
-//				ch = 0;
-//				isDone = 1;
-//			}
-//			else
-//				ch = (unsigned char) temp;
-//			
-//			textCharsLeft = picCharsLeft = 8;
-//			
-//			
-////			for (int j = 0; j < (int) (ceil((float) (8.0 / numPlanes))); j++) {
-////				if (8 - ((j + 1) * numPlanes) > 0)
-////					buf[j] |= ((ch >> (8 - ((j + 1) * numPlanes)))
-////							& ~(255 << numPlanes));
-////				else if (8 - ((j + 1) * numPlanes) < 0)
-////					buf[j] |= ((ch << (((j + 1) * numPlanes) - 8))
-////							& ~(255 << numPlanes));
-////				else
-////					buf[j] |= (ch & ~(255 << numPlanes));
-////			}
-//			
-//		}
-//		total++;
-//		fwrite(buf,1,1,outIm);
-//	}
 	fin.close();
 	fclose(inIm);
 	fclose(outIm);
+}
+
+void LSBSteganography::improvedDestegify(char input[], int numPlanes){
+
+	FILE *inIm;
+	if ( (inIm= fopen(input,"rb")) == NULL ) {
+		cout<<"ouch, inim\n";
+		return;
+	}
+
+	size_t size;
+
+	unsigned char buf[2];
+
+	int total=0;
+
+	unsigned char ch = 0;
+
+	int picCharsLeft = 0;
+	int textCharsLeft = 8;
+
+	while(total<=BMP_HEADER_SIZE && (size=fread(buf,1,1,inIm))>0) {
+		total++;
+	}
+	
+	bool isDone = false, endWritten = false;
+
+	cout<<"\nMessage:"<<"\n";
+
+	while (!(textCharsLeft == 0 && ch == 0)) {
+		if (textCharsLeft == 0) {
+			cout<<ch;
+			// cout<<"Ans out:";print_int_in_binary(ch);cout<<"\n";
+			ch = 0;
+			textCharsLeft = 8;
+		}
+
+		if (picCharsLeft == 0) {
+			if (fread(buf, 1, 1, inIm) <= 0) {
+				break;
+			}
+			else {
+				picCharsLeft = numPlanes;
+				// cout<<"Im in:";print_int_in_binary(*buf);cout<<"\n";
+			}
+		}
+
+		ch |= ((unsigned char)(*buf << (8 - picCharsLeft))) >> (8 - textCharsLeft);
+
+		if (textCharsLeft < picCharsLeft) {
+			picCharsLeft -= textCharsLeft;
+			textCharsLeft = 0;
+		}
+		else if (picCharsLeft < textCharsLeft) {
+			textCharsLeft -= picCharsLeft;
+			picCharsLeft = 0;
+		}
+		else {
+			picCharsLeft = textCharsLeft = 0;
+		}
+	}
+	
+	fclose(inIm);
 }
 
 void LSBSteganography::copyImage(char input[], char output[]) {
