@@ -177,7 +177,7 @@ void LSBSteganography::improvedStegify(char input[], char output[], char text[],
 					break;
 				}
 				else {
-					*buf = (*buf >> numPlanes) << numPlanes;
+					*buf = ((unsigned char)((unsigned char)(*buf >> numPlanes)) << numPlanes);
 					picCharsLeft = numPlanes;
 					// cout<<"Steg in: ";print_int_in_binary(*buf);cout<<"\n";
 				}
@@ -195,16 +195,16 @@ void LSBSteganography::improvedStegify(char input[], char output[], char text[],
 		}
 
 		if (textCharsLeft < picCharsLeft) {
-			*buf |= ch << (picCharsLeft - textCharsLeft);
+			*buf |= (unsigned char)(ch << (picCharsLeft - textCharsLeft));
 			picCharsLeft -= textCharsLeft;
 			textCharsLeft = 0;
 		}
 		else if (picCharsLeft < textCharsLeft) {
 			// cout<<"Shift op ";print_int_in_binary(ch);cout<< "<<"<<(8 - textCharsLeft)<<">>"<<(8-picCharsLeft)<<"=";print_int_in_binary((ch << (8 - textCharsLeft)) >> (8 - picCharsLeft )); cout << "\n";
-			*buf |= (ch << (8 - textCharsLeft)) >> (8 - picCharsLeft );
+			*buf |= (unsigned char)((unsigned char)(ch << (8 - textCharsLeft)) >> (8 - picCharsLeft ));
 			textCharsLeft -= picCharsLeft;
 			picCharsLeft = 0;
-			ch = (unsigned char)(ch << (8-textCharsLeft)) >> (8-textCharsLeft);
+			ch = (unsigned char)((unsigned char)(ch << (8-textCharsLeft)) >> (8-textCharsLeft));
 			fwrite(buf,1,1,outIm);
 			// cout<<"Steg out: ";print_int_in_binary(*buf);cout<<"\n";
 		}
