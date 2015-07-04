@@ -15,16 +15,6 @@ HuffmanTree::~HuffmanTree(void)
 {
 }
 
-/*
-struct HuffmanTreeNode {
-  char c;
-  bool isGroupNode;
-  unsigned int freq;
-  vector<bool> code;
-  HuffmanTreeNode *left;
-  HuffmanTreeNode *right;
-};
-*/
 
 void HuffmanTree::add_to_encoding(char c, unsigned int freq) {
   HuffmanTreeNode *hfn = new HuffmanTreeNode;
@@ -62,10 +52,77 @@ void HuffmanTree::encode() {
 
     hfHeap.push(hfn);
   }
+
+  if (DEBUG) {
+    cout<<"\nEncoding:";
+    cout<<"\n---------\n\n";
+  }
+
+  handleBinarization(hfHeap.top(), vector<bool>());
+}
+
+/*
+struct HuffmanTreeNode {
+  char c;
+  bool isGroupNode;
+  unsigned int freq;
+  vector<bool> code;
+  HuffmanTreeNode *left;
+  HuffmanTreeNode *right;
+};
+*/
+void HuffmanTree::handleBinarization(HuffmanTreeNode *node, vector<bool> binary) {
+  node->code = binary;
+
+  binary.push_back(false);
+  if (node->left != NULL) {
+    handleBinarization(node->left, binary);
+  }
+  binary.pop_back();
+
+  binary.push_back(true);
+  if (node->right != NULL) {
+    handleBinarization(node->right, binary);
+  }
+  binary.pop_back();
+
+  if (DEBUG && !node->isGroupNode) {
+    cout<<'\''<<node->c<<'\''<<":  ";
+    for (int i=0;i<binary.size();i++)
+      cout<<(int)binary[i];
+    cout<<"\n";
+  }
 }
 
 void HuffmanTree::print_encoding() {
+  print_encoding(hfHeap.top());
+}
 
+void HuffmanTree::print_encoding(HuffmanTreeNode *node) {
+  if (node == NULL)
+    return;
+  if (node->left != NULL) {
+    if (!node->left->isGroupNode) {
+      cout<<'\''<<node->left->c<<'\''<<":  ";
+      for (int i=0;i<node->left->code.size();i++)
+        cout<<(int)node->left->code[i];
+      cout<<"\n";
+    }
+    else {
+      print_encoding(node->left);
+    }
+  }
+  if (node->right != NULL) {
+    if (!node->right->isGroupNode) {
+      cout<<'\''<<node->right->c<<'\''<<":  ";
+      for (int i=0;i<node->right->code.size();i++)
+        cout<<(int)node->right->code[i];
+      cout<<"\n";
+    }
+    else {
+      print_encoding(node->right);
+    }
+  }
 }
 
 // hf[256];

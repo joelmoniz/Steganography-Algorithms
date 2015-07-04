@@ -76,7 +76,7 @@ int main() {
   // cout<<"\n";
   HuffmanEncoding *huff = new HuffmanEncoding;
   HuffmanTree *tr = new HuffmanTree;
-  huff->get_freq_count("MoV.txt");
+  huff->get_freq_count("test.txt");
   huff->generate_huffman_encoding(tr);
   if (DEBUG) {
     huff->print_freq_count();

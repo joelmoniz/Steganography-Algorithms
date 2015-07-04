@@ -29,6 +29,7 @@ class HuffmanTree
 {
 private:
 	priority_queue<HuffmanTreeNode*, vector<HuffmanTreeNode*>, CompareHuffmanNode> hfHeap;
+	void print_encoding(HuffmanTreeNode *node);
 public:
 
 
@@ -43,6 +44,8 @@ public:
 	void encode();
 
 	void print_encoding();
+
+	void handleBinarization(HuffmanTreeNode *node, vector<bool> binary);
 
 //	void HuffmanTree::initialiseArray(HuffmanTreeNode*, int ) ;
 //
